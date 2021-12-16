@@ -1,39 +1,14 @@
 import express from "express";
 import bodyParser from "body-parser";
 import { createNode, updateNode, queryTree } from "./operations.js";
+import { transferDataToFile } from './utils/transfer-data.js';
+
 const api = express();
 const port = 3000;
+export const usagePattern = { create: {}, update: {}, read: {} };
 export const db = {
   calculatedSize: 0,
-  tree: {
-    "kugesh-notes": {
-      notes: [
-        {
-          id: "kugesh-notes_notes_1639652574992_77519",
-          name: "rakesh",
-          description: "Just a third text",
-          date: "13 July",
-        },
-        {
-          id: "kugesh-notes_notes_1639652585708_30590",
-          name: "kugesh",
-          attitude: { handsomenes: "best" },
-          description: "Just a third text",
-          date: "13 July",
-        },
-      ],
-    },
-    "rakesh-notes": {
-      notes: [
-        {
-          id: "rakesh-notes_notes_1639652611050_65116",
-          name: "kugesh",
-          description: "Just a third text",
-          date: "13 July",
-        },
-      ],
-    },
-  },
+  tree: {}
 };
 /* request object structure */
 const reqObjStr = {
@@ -57,35 +32,13 @@ api.post("/", (req, res) => {
   const { operation, data = null, query = null } = req.body;
   switch (operation) {
     case "create":
-      if (!isReqValid("create", data))
-        res.send(
-          `Create request needs to in the following format - ${reqObjStr.create}`
-        );
-      else {
-        const result = createNode(data);
-        res.send({ id: result});
-      }
+        handleReq(operation, data, createNode, res);
       break;
     case "update":
-      if (!isReqValid("update", data))
-        res.send(
-          `Update request needs to in the following format - ${reqObjStr.update}`
-        );
-      else {
-        res.send("Record got updated successfully");
-        updateNode(data);
-      }
+        handleReq(operation, data, updateNode, res);
       break;
     case "read":
-      if (!isReqValid("read", query))
-        res.send(
-          `Read request needs to in the following format - ${reqObjStr.read}`
-        );
-      else {
-        const result =  queryTree(query);
-        res.send(result);
-        //console.log(queryTree(query))
-      }
+        handleReq(operation, query, queryTree, res);
       break;
     default:
       res.send(
@@ -94,14 +47,33 @@ api.post("/", (req, res) => {
   }
 });
 
-/**
- * CREATE
- *      { operation: 'create', data: { owner: string, type: string, create: { ...data_need_to_store } }
- * UPDATE
- *      { operation: 'update', data: { owner: string, type: string, update: { id: string, ...data_need_to_update } } }
- * READ
- *      { operation: 'read', query: { owner: string, type: string, matching: [ { key_to_match: string, value_to_match: string } ], tags: [tags_to_be_matched] } }
- **/
+const handleReq = (operation, payload, fnToCall, res) => {
+    if (!isReqValid(operation, payload))
+        res.send(
+          `${operation} request needs to in the following format - ${reqObjStr[operation]}`
+        );
+      else {
+        const result = fnToCall(payload);
+        res.send(result);
+        updateUP(operation, payload.owner);
+        handleMemory(operation, payload);
+      }
+}
+
+const handleMemory = (operation, payload) => {
+    if(operation != 'create')
+        return ;
+    db.calculatedSize += JSON.stringify(payload.create).length * 2;
+    if(calculatedSize / 1000 > 500)
+        transferDataToFile();
+}
+
+const updateUP = (operation, owner) => {
+    if(!usagePattern[operation][owner])
+        usagePattern[operation][owner] = 1;
+    else
+        !usagePattern[operation][owner]++;
+}
 
 const isReqValid = (operation, data) => {
     console.log(JSON.stringify(data));

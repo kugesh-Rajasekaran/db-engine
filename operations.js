@@ -8,7 +8,7 @@ export function createNode(payload) {
   const _id = generateId(owner, type);
   db.tree[owner][type].push({ id: _id, ...create });
   console.log(`CREATED NODE -> ${JSON.stringify(db)}`);
-  return _id;
+  return { id: _id };
 }
 
 const generateId = (owner, type) => {
@@ -30,6 +30,7 @@ export function updateNode(payload) {
     return "Updation failed. Record not found for given id";
   db.tree[owner][type][index - 1] = update;
   console.log(`UPDATED NODE -> ${JSON.stringify(db)}`);
+  return "Updated Successfully";
 }
 
 export function queryTree(query) {
