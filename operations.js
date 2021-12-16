@@ -37,7 +37,7 @@ export function queryTree(query) {
     console.log(`[queryTree] Handling request with data ${JSON.stringify(query)}`);
   const { owner, type, matching = null, tags = null } = query;
   const result = {};
-  if (!!matching) result["value-matched"] = findMatchingNodes(owner, type, matching, isValMatching);
+  if (!!matching) result["value-matches"] = findMatchingNodes(owner, type, matching, isValMatching);
   if (!!tags) result["tag-matches"] = findMatchingNodes(owner, type, tags, isTagMatching);
   console.log(`From queryTree -> ${JSON.stringify(result)}`)
   return result;

@@ -10,20 +10,14 @@ export const db = {
   calculatedSize: 0,
   tree: {}
 };
+
 /* request object structure */
 const reqObjStr = {
   create: `{ operation: 'create', data: { owner: string, type: string, ...data_need_to_store } }`,
   update: `{ operation: 'update', data: { owner: string, type: string, update: { id: string, ...data_need_to_update } } }`,
   read: `{ operation: 'read', query: { owner: string, type: string, matching: [{ key_to_match: string, value_to_match: string }], tags: [tags_to_be_matched] } }`,
 };
-/**
- * CREATE
- *      { operation: 'create', data: { owner: string, type: string, create: { ...data_need_to_store } }
- * UPDATE
- *      { operation: 'update', data: { owner: string, type: string, update: { id: string, ...data_need_to_update } } }
- * READ
- *      { operation: 'read', query: { owner: string, type: string, matching: [ { key_to_match: string, value_to_match: string } ], tags: [tags_to_be_matched] } }
- **/
+
 api.use(bodyParser.urlencoded({ extended: false }));
 api.use(bodyParser.json());
 
@@ -54,7 +48,7 @@ const handleReq = (operation, payload, fnToCall, res) => {
         );
       else {
         const result = fnToCall(payload);
-        res.send(result);
+        res.send({ result });
         updateUP(operation, payload.owner);
         handleMemory(operation, payload);
       }
